@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * {@link CompressControllerTest}
+ * {@link CompressControllerTest} contains integration tests for the {@link CompressController} class
  *
  * @author Luiz Azevedo
  */
@@ -54,7 +54,7 @@ public class CompressControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        assertSame(result.getResponse().getContentAsByteArray(), Map.of("foo.txt", "foo"));
+        assertZipFileContent(Map.of("foo.txt", "foo"), result.getResponse().getContentAsByteArray());
     }
 
     @Test
@@ -67,22 +67,29 @@ public class CompressControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        assertSame(result.getResponse().getContentAsByteArray(), Map.of("foo.txt", "foo", "bar.txt", "bar"));
+        assertZipFileContent(Map.of("foo.txt", "foo", "bar.txt", "bar"), result.getResponse().getContentAsByteArray());
     }
 
 
-    void assertSame(final byte[] zipFileContentAsByteArray, final Map<String, String> compressedFiles) throws IOException {
+    /**
+     * Method that helps to make assertions on the downloaded zip file. It matches the expected files, along with underlying
+     * content, with the zip entries read from the given byte array.
+     *
+     * @param expectedFiles             map with the expected file name and underlying content (as a string)
+     * @param zipFileContentAsByteArray zip file byte array
+     */
+    void assertZipFileContent(final Map<String, String> expectedFiles, final byte[] zipFileContentAsByteArray) throws IOException {
         try (final ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(zipFileContentAsByteArray))) {
             ZipEntry zipEntry = zipInputStream.getNextEntry();
             while (zipEntry != null) {
                 final String fileName = zipEntry.getName();
 
-                assertTrue(compressedFiles.containsKey(fileName));
+                assertTrue(expectedFiles.containsKey(fileName));
 
                 try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                     IOUtils.copy(zipInputStream, outputStream);
                     final String fileContent = outputStream.toString(Charset.defaultCharset());
-                    assertEquals(compressedFiles.get(fileName), fileContent);
+                    assertEquals(expectedFiles.get(fileName), fileContent);
                 }
 
                 zipInputStream.closeEntry();

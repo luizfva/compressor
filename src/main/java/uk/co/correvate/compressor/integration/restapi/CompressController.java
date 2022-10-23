@@ -18,7 +18,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * {@link CompressController}
+ * {@link CompressController} is a simple Rest API that can be used to compress one or more files into a single Zip file
  *
  * @author Luiz Azevedo
  */
